@@ -58,6 +58,11 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        
+        /** Mandatory
+         * This is used to listen to users response when he is prompted to turn on gps
+         * 
+         */
         switch (requestCode){
             case GoogleMapFragment.RESOLUTION_REQUEST:
                 switch (resultCode) {
