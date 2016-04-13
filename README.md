@@ -9,3 +9,5 @@ There is a sample activity , please refer it to understand more.
 Would really like contributions to this because there is so much more related to maps.
 
 
+Please note: You have to import this as a module to your app.
+
