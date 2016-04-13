@@ -26,28 +26,27 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 
 import compassites.googlemapservice.helper.GoogleMapHelper;
+import compassites.googlemapservice.interfaces.LocationSelected;
 
 public class GoogleMapFragment extends SupportMapFragment implements
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
-        LocationListener, ResultCallback<LocationSettingsResult>
-{
+        LocationListener, ResultCallback<LocationSettingsResult> {
 
     public static final int RESOLUTION_REQUEST = 538;
     private int markerIcon;
-    private Handler handler=new Handler();
+    private Handler handler = new Handler();
     private GoogleApiClient mLocationClient;
     private LocationRequest mLocationRequest;
     private GoogleMapHelper mGoogleMapHelper;
     private GoogleMap mGoogleMap;
     private Marker mUserMarker;
     private LatLng mCurrentLocationLatLng;
+    private LocationSelected onLocationSelected;
 
-    public GoogleMapFragment(){
+    public GoogleMapFragment() {
 
     }
-
-
 
 
     @Override
@@ -91,13 +90,14 @@ public class GoogleMapFragment extends SupportMapFragment implements
         mLocationClient = new GoogleApiClient.Builder(getActivity())
                 .addApi(LocationServices.API).addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this).build();
-        mLocationRequest=getArguments().getParcelable("locreq");
+        mLocationRequest = getArguments().getParcelable("locreq");
         mLocationClient.connect();
         /**
          * Initialize the helper class
          */
 
-        mGoogleMapHelper=new GoogleMapHelper();
+        mGoogleMapHelper = new GoogleMapHelper();
+        onLocationSelected = (LocationSelected) getActivity();
     }
 
     @Override
@@ -141,6 +141,7 @@ public class GoogleMapFragment extends SupportMapFragment implements
 
     /**
      * You can implement the location changed in your activity and use this as per your requirement .Below is just a sample code
+     *
      * @param location
      */
     @Override
@@ -148,10 +149,8 @@ public class GoogleMapFragment extends SupportMapFragment implements
         /**
          * CallBack when location is changed, we just move map and add a marker here
          */
-        mCurrentLocationLatLng=new LatLng(location.getLatitude(), location.getLongitude());
-        mGoogleMapHelper.setMapToLocation(mGoogleMap,mCurrentLocationLatLng);
-        Toast.makeText(getActivity(),mGoogleMapHelper.getAddressFromLatLng(mCurrentLocationLatLng,getActivity()),Toast.LENGTH_SHORT).show();
-        mUserMarker=mGoogleMapHelper.addMarker(mGoogleMap,mCurrentLocationLatLng);
+        mCurrentLocationLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+        handleMapEvents(mCurrentLocationLatLng);
     }
 
     @Override
@@ -164,14 +163,14 @@ public class GoogleMapFragment extends SupportMapFragment implements
             case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
                 /**
                  * Location settings are not satisfied. But could be fixed by showing the user
-                    a dialog.
-                  */
+                 a dialog.
+                 */
                 try {
                     /**
                      * Show the dialog by calling startResolutionForResult(),
-                       and check the result in onActivityResult() in your Activity and call startLocationService
+                     and check the result in onActivityResult() in your Activity and call startLocationService
                      */
-                    status.startResolutionForResult(getActivity(),RESOLUTION_REQUEST);
+                    status.startResolutionForResult(getActivity(), RESOLUTION_REQUEST);
 
                 } catch (IntentSender.SendIntentException e) {
                     /**
@@ -183,7 +182,7 @@ public class GoogleMapFragment extends SupportMapFragment implements
             case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
                 /**
                  *   Location settings are not satisfied. However, we have no way to fix the
-                     settings so we won't show the dialog.
+                 settings so we won't show the dialog.
                  */
                 Log.d("GoogleServices", "Settings Not Available");
                 break;
@@ -198,15 +197,15 @@ public class GoogleMapFragment extends SupportMapFragment implements
         LocationServices.FusedLocationApi.requestLocationUpdates(mLocationClient, mLocationRequest, this);
     }
 
-   GoogleMap.OnMapClickListener onMapClickListener=new GoogleMap.OnMapClickListener() {
-       @Override
-       public void onMapClick(LatLng latLng) {
-           handleMapEvents(latLng);
+    GoogleMap.OnMapClickListener onMapClickListener = new GoogleMap.OnMapClickListener() {
+        @Override
+        public void onMapClick(LatLng latLng) {
+            handleMapEvents(latLng);
 
-       }
-   };
+        }
+    };
 
-    GoogleMap.OnMapLongClickListener onMapLongClickListener=new GoogleMap.OnMapLongClickListener() {
+    GoogleMap.OnMapLongClickListener onMapLongClickListener = new GoogleMap.OnMapLongClickListener() {
 
 
         @Override
@@ -216,7 +215,7 @@ public class GoogleMapFragment extends SupportMapFragment implements
         }
     };
 
-    GoogleMap.OnMyLocationButtonClickListener onMyLocationButtonClickListener=new GoogleMap.OnMyLocationButtonClickListener() {
+    GoogleMap.OnMyLocationButtonClickListener onMyLocationButtonClickListener = new GoogleMap.OnMyLocationButtonClickListener() {
         @Override
         public boolean onMyLocationButtonClick() {
             handleMapEvents(mCurrentLocationLatLng);
@@ -224,14 +223,14 @@ public class GoogleMapFragment extends SupportMapFragment implements
         }
     };
 
-        private void handleMapEvents(LatLng latLng){
-        if(mUserMarker!=null){
+    private void handleMapEvents(LatLng latLng) {
+        if (mUserMarker != null) {
             mUserMarker.remove();
         }
-        mGoogleMapHelper.setMapToLocation(mGoogleMap,latLng);
-        mUserMarker=mGoogleMapHelper.addMarker(mGoogleMap,latLng);
-        Toast.makeText(getActivity(),mGoogleMapHelper.getAddressFromLatLng(latLng,getActivity()),Toast.LENGTH_SHORT).show();
-
+        mGoogleMapHelper.setMapToLocation(mGoogleMap, latLng);
+        mUserMarker = mGoogleMapHelper.addMarker(mGoogleMap, latLng);
+        String address = mGoogleMapHelper.getAddressFromLatLng(latLng, getActivity());
+        onLocationSelected.updateUI(address);
     }
 
     @Override

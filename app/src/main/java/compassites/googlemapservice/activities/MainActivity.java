@@ -4,16 +4,18 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.widget.Toast;
 
 import com.google.android.gms.location.LocationRequest;
 
 import compassites.googlemapservice.R;
 import compassites.googlemapservice.fragments.GoogleMapFragment;
+import compassites.googlemapservice.interfaces.LocationSelected;
 
 /**
  * Created by shaikatif on 11/4/16.
  */
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements LocationSelected {
 
     private LocationRequest mLocationRequest;
     private GoogleMapFragment googleMapFragment;
@@ -58,6 +60,11 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        /** Mandatory
+         * This is used to listen to users response when he is prompted to turn on gps
+         *
+         */
         switch (requestCode){
             case GoogleMapFragment.RESOLUTION_REQUEST:
                 switch (resultCode) {
@@ -72,5 +79,10 @@ public class MainActivity extends AppCompatActivity {
         }
         super.onActivityResult(requestCode, resultCode, data);
 
+    }
+
+    @Override
+    public void updateUI(String address) {
+        Toast.makeText(this,address,Toast.LENGTH_SHORT).show();
     }
 }
